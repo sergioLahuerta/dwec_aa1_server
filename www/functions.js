@@ -99,7 +99,7 @@ function changeColorCategories() {
         });
     });
 
-    // LLAMADA FINAL: Ejecutar la carga de colores guardados al finalizar la configuración.
+    // Ejecución de la carga de colores guardados al finalizar la configuración.
     loadSavedColors();
 }
 
