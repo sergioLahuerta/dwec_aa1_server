@@ -100,11 +100,8 @@ function changeColorCategories() {
         });
     });
 
-    // Ejecución de la carga de colores guardados al finalizar la configuración.
-    loadSavedColors();
+    // Hago que la función loadSavedColors sea accesible haciendo que changeColorCategories retorne el objeto loadColors que permite que la función principalmente mencionada sea llamada desde otro archivo como en este caso calls.js (que lo necesito para que la lógica de que se guarden los colores de las categorías se ejecute o cargue después de las propias categorías)
+    return {
+        loadColors: loadSavedColors
+    }
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-    console.log('DOM cargado');
-    changeColorCategories();
-});
