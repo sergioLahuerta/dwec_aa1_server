@@ -47,26 +47,26 @@ function changeColorCategories() {
         
         // Determinar si usar texto azul (para fondo claro) o blanco (para fondo oscuro)
         if (newColor === '#f8f9fa') { // Color claro de Bootstrap
-            targetElement.style.color = '#0d6efd'; // Texto Azul Primario
+            targetElement.style.color = '#0d6efd'; // Texto en azul primario (bg-primary)
             icons.forEach(icon => {
                 icon.style.color = '#0d6efd';
             });
         } else {
-            targetElement.style.color = '#ffffff'; // Texto Blanco
+            targetElement.style.color = '#ffffff'; // Texto en color blanco
             icons.forEach(icon => {
                 icon.style.color = '#ffffff';
             });
         }
     }
 
-    // Listener para guardar el ID ANTES de que se muestre el modal (show.bs.modal)
+    // Listener para guardar el id antes de que se muestre el modal (show.bs.modal)
     modalElement.addEventListener('show.bs.modal', (event) => {
         const button = event.relatedTarget;
         targetCategoryId = button.getAttribute('data-target-id');
         console.log(`Modal abierto para: ${targetCategoryId}`);
     });
 
-    // Listener para cuando se hace clic en un cuadrado de color
+    // Listener para cuando se hace clic en un cuadradito de color
     const colorSwatches = document.querySelectorAll('.color-swatch');
 
     colorSwatches.forEach(swatch => {
@@ -95,6 +95,11 @@ function changeColorCategories() {
                     // Cierre del modal de Bootstrap
                     const modal = bootstrap.Modal.getInstance(modalElement);
                     modal.hide();
+
+                    if (targetLi.classList.contains('category-active') || targetLi.classList.contains('category-active-whiteBack')) {
+                        // Uso la función de setActiveCategorie para que detecte que cuando se cambia el color del fondo se ponga el borde del color correspondiente al elegido.
+                        setActiveCategorie(targetCategoryId); 
+                    }
                 }
             }
         });
@@ -103,5 +108,22 @@ function changeColorCategories() {
     // Hago que la función loadSavedColors sea accesible haciendo que changeColorCategories retorne el objeto loadColors que permite que la función principalmente mencionada sea llamada desde otro archivo como en este caso calls.js (que lo necesito para que la lógica de que se guarden los colores de las categorías se ejecute o cargue después de las propias categorías)
     return {
         loadColors: loadSavedColors
+    }
+}
+
+function setActiveCategory(activeCategoryId) {
+    const allCategories = document.querySelectorAll('#category-list li');
+    allCategories.forEach(li => li.classList.remove('category-active', 'category-active-whiteBack'));
+    
+    const currentActiveLi = document.getElementById(activeCategoryId);
+    if(currentActiveLi) {
+        const bgColor = currentActiveLi.style.backgroundColor;
+        if (bgColor === 'rgb(248, 249, 250)' || bgColor === '#f8f9fa') {
+            // Si el fondo es blanco, en azul (el bg-primary de Bootstrap)
+            currentActiveLi.classList.add('category-active-whiteBack');
+        } else {
+            // Si el fondo es oscuro, en blanco
+            currentActiveLi.classList.add('category-active');
+        }
     }
 }
