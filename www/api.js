@@ -45,7 +45,6 @@ class Api {
                     title: "Cargando",
                     text: "Obteniendo datos del servidor...",
                     icon: "info"
-            
             })
 
             const response = await fetch(url)
@@ -74,9 +73,38 @@ class Api {
     //     return this._get('/')
     // }
 
-    // async getAllSitesByCategorie(categoryId) {
-    //     return this._get(`/categories/${categoryId}`);
-    // }
+    async getAllSitesByCat(categoryId) {
+        const path = `/categories/${categoryId}`
+        const url = `${this.endpoint}${path}`
+
+        try {
+            Swal.fire({
+                title: "Cargando",
+                    text: "Obteniendo datos del servidor...",
+                    icon: "info"
+            })
+
+            const response = await fetch(url);
+
+            if(!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}, el servidor no responde.`)
+            }
+
+            Swal.close();
+
+            return response.json();
+        }
+        
+        catch(error) {
+            Swal.fire({
+                title: "Error de Conexión",
+                text: `Fallo al obtener datos de ${path}. ¿Está el backend (npm start) activo?`,
+                icon: "error"
+            })
+            console.log('Error en la api para: ', path, error);
+            return null;
+        }
+    }
 
     // getSites(category) {
 
