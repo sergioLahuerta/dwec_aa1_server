@@ -45,25 +45,100 @@ const renderCategories = (categories) => {
                 </button>
             </div>
         `;
+
+        // Pongo aquí el hover para no tener que crear un archivo .css
+        li.addEventListener('mouseover', () => {
+            li.style.cursor = 'pointer';
+        })
         
         // Adición de la categoría a la lista
         categoryList.appendChild(li); 
     });
 };
 
-document.addEventListener('DOMContentLoaded', async () => {
+const renderSitesByCat = (sites) => {
+    const sitesListByCat = document.getElementById('sites-by-cat');
+    sitesListByCat.innerHTML = ''; // Limpio el content del elemento (en este caso el div con ese id) por si acaso
+
+    sites.sites.forEach(site => {
+        const siteId = `site-${site.id}`;
+        const siteName = site.name;
+        
+        // Creación de cada div en el que va cada sitio
+        const div = document.createElement('div');
+        div.id = siteId;
+        div.className = 'p-3 mb-3 rounded bg-secondary bg-opacity-50 border-bottom border-secondary'; // Clases de bootstrap que tenían los sites en estático
+        div.style.width = 'calc(50% - 12px)'; // Para que queden bien centrados los sites en su contenedor (no lo he conseguido hacer de otra forma)
+
+        // Contenido del div (el codigo comentado en estatico de los sites en el index.html(sin variables claro))
+        div.innerHTML = `
+            <h5 class="mb-1 d-flex align-items-center">
+                ${siteName}<a href="#" class="ms-2 text-decoration-none small text-primary"><i
+                    class="bi bi-box-arrow-up-right"></i></a>
+              </h5>
+              <p class="text-primary small mb-3">${site.url}</p>
+
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <div>
+                  <span class="fw-bold text-white me-2">Usuario:</span> <span
+                    class="text-white">${site.user}</span>
+                </div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center">
+                <div>
+                  <span class="fw-bold text-white me-2">Contraseña:</span> <span class="text-white">${site.password}</span>
+                </div>
+                <div>
+                  <button class="btn btn-sm btn-outline-light border-secondary me-2"><i
+                      class="bi bi-pencil-square"></i></button>
+                  <button class="btn btn-sm btn-outline-light border-secondary me-2"><i
+                      class="bi bi-x-lg"></i></button>
+                </div>
+              </div>
+        `;
+        
+        // Adición de la categoría a la lista
+        sitesListByCat.appendChild(div); 
+    });
+};
+
+async function callCategories() {
     colorUI = changeColorCategories();
 
     console.log('Iniciando carga de categorías');
 
     const categories = await api.getAllCategories();
     
-    if (categories) {
+    if (categories && categories.length > 0) {
         console.log('Categorías cargadas con éxito:', categories);
         renderCategories(categories);
         // Ejecución de la carga de colores guardados al finalizar la configuración.
         colorUI.loadColors();
+        const firstCategorie = categories[0].id;
+
+        return firstCategorie;
     } else {
         console.log('La carga de categorías falló (el error fue mostrado por SweetAlert).');
+    }
+}
+
+async function callSitesByCat(categoryId) {
+    console.log('Iniciando carga de categorías');
+
+    const sites = await api.getAllSitesByCat(categoryId);
+    
+    if (sites) {
+        console.log('Sitios web cargadas con éxito:', sites);
+        renderSitesByCat(sites);
+    } else {
+        console.log('La carga de sitios web falló (el error fue mostrado por SweetAlert).');
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async () => {
+    const firstCategoryId = await callCategories();
+    if(firstCategoryId) {
+        await callSitesByCat(firstCategoryId)
     }
 });
