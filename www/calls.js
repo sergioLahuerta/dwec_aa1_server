@@ -1,4 +1,4 @@
-// Me pongo comentarios descriptivos para enterarme de lo que voy haciendo, aunque sean un poco "para niños"
+// Me pongo comentarios descriptivos para aclararme con todo lo que voy haciendo, aunque sean un poco "para niños"
 
 const API_URL = 'http://localhost:3000';
 const api = new Api(API_URL);
@@ -9,7 +9,7 @@ const renderCategories = (categories) => {
     categoryList.innerHTML = ''; // Limpio el content del elemento (en este caso el ul con ese id) por si acaso
 
     categories.forEach(category => {
-        const categoryId = `category-${category.id}`;
+        const categoryId = `${category.id}`;
         const categoryName = category.name;
         
         // Colores e iconos por defecto, luego si se quiere pues se cambian en la interfaz web
@@ -50,9 +50,15 @@ const renderCategories = (categories) => {
         li.addEventListener('mouseover', () => {
             li.style.cursor = 'pointer';
         })
+
+        // Evento escuchador que uso para que cuando se haga click en una categoría, que salgan en la web los sites de la misma y que se asigne como categoría activa para ponerle la clase que corresponda programada en extraFunctions.js (linea 114)
+        li.addEventListener('click', () => {
+            callSitesByCat(categoryId);
+            setActiveCategorie(categoryId)
+        })
         
         // Adición de la categoría a la lista
-        categoryList.appendChild(li); 
+        categoryList.appendChild(li);
     });
 };
 
@@ -123,22 +129,124 @@ async function callCategories() {
     }
 }
 
+let selectedNewCategoryColor = '#6c757d';
+const addCategoryModalElement = document.getElementById('addCategoryModal');
+
+async function createCategory() {
+    const categoryNameInput = document.getElementById('newCategoryName');
+    const name = categoryNameInput.value.trim();
+    const color = selectedNewCategoryColor;
+
+    console.log("Creando categoría con color:", color);
+
+    const newCategory = await api.postCategorie(name, color);
+
+    if(newCategory) {
+        const newCategoryId = newCategory.id;
+        const finalCategoryIdWithPrefix = `${newCategoryId}`; // Usas el ID sin prefijo en li.id
+        
+        // Color elegido en localStorage temporalmente
+        const STORAGE_KEY = 'categoryColors'; // Asegúrate de que esta variable exista globalmente
+        const savedColorsJSON = localStorage.getItem(STORAGE_KEY) || '{}';
+        const savedColors = JSON.parse(savedColorsJSON);
+        
+        // Guardado del color elegido en localStorage con el ID que devolvió el POST
+        savedColors[finalCategoryIdWithPrefix] = color;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(savedColors));
+
+        const modal = bootstrap.Modal.getInstance(addCategoryModalElement);
+        if(modal) {
+            modal.hide();
+        }
+
+        const newCatSwatches = document.querySelectorAll('.new-cat-swatch');
+        newCatSwatches.forEach(s => {
+            s.style.border = '2px solid transparent';
+        });
+
+        selectedNewCategoryColor = '#6c757d';
+
+        categoryNameInput.value = '';
+
+        await callCategories();
+
+        const finalCategoryId = newCategory.id;
+        
+        // Carga de los sitios de la nueva categoría y ponerle el borde activo.
+        await callSitesByCat(finalCategoryId);
+        setActiveCategorie(finalCategoryId);
+    }
+}
+
+function initializeNewCategoryColorPicker() {
+    const newCatSwatches = document.querySelectorAll('.new-cat-swatch');
+    
+    newCatSwatches.forEach(swatch => {
+        swatch.addEventListener('click', (event) => {
+            const clickedElement = event.currentTarget;
+            const newColor = clickedElement.getAttribute('data-color');
+            
+            // Limpiar el borde 'activo' de todos los swatches
+            newCatSwatches.forEach(s => {
+                s.style.border = '2px solid transparent';
+            });
+
+            // Aplicar el borde al swatch seleccionado
+            clickedElement.style.border = '2px solid white'; 
+            
+            // Guardar el color en la variable global para usarlo en el POST
+            selectedNewCategoryColor = newColor; 
+
+            console.log("Color para nueva categoría seleccionado:", selectedNewCategoryColor);
+        });
+    });
+
+    // Seleccionar el color por defecto al inicio
+    // Seleccionar el primer swatch (o el gris #6c757d) al cargar
+    const defaultSwatch = document.querySelector('[data-color="#6c757d"]');
+    if (defaultSwatch) {
+        selectedNewCategoryColor = '#6c757d';
+        defaultSwatch.style.border = '2px solid white';
+    }
+}
+
 async function callSitesByCat(categoryId) {
     console.log('Iniciando carga de categorías');
-
-    const sites = await api.getAllSitesByCat(categoryId);
     
-    if (sites) {
-        console.log('Sitios web cargadas con éxito:', sites);
-        renderSitesByCat(sites);
+    const categoryData = await api.getAllSitesByCat(categoryId);
+
+    if (categoryData) {
+        const categoryTitleElement = document.getElementById('nameCategory');
+        if (categoryTitleElement && categoryData.name) {
+            categoryTitleElement.textContent = categoryData.name;
+        }
+
+        // Actualización del contador de sitios
+        const sitesCount = categoryData.sites ? categoryData.sites.length : 0;
+        const countElement = document.getElementById('sitesCount');
+        if (countElement) {
+            countElement.textContent = `${sitesCount} sitios guardados`;
+        }
+        
+        console.log('Sitios web cargados con éxito:', categoryData);
+        // Llamada a la función de renderizado para dibujar las tarjetas de sitios
+        renderSitesByCat(categoryData);
     } else {
-        console.log('La carga de sitios web falló (el error fue mostrado por SweetAlert).');
+        console.log('La carga de sitios web falló.');
     }
 }
 
 document.addEventListener('DOMContentLoaded', async () => {
+    initializeNewCategoryColorPicker()
+    const btnSave = document.getElementById('btnSaveNewCategory');
+    if (btnSave) {
+        btnSave.addEventListener('click', createCategory)
+    }
+    
     const firstCategoryId = await callCategories();
-    if(firstCategoryId) {
-        await callSitesByCat(firstCategoryId)
+    // Que por defecto salgan los sites de la primera categoría y que se ponga esta primera como activa
+    if (firstCategoryId) {
+        await callSitesByCat(firstCategoryId);
+        setActiveCategorie(firstCategoryId);
     }
 });
