@@ -3,67 +3,73 @@ class Api {
         this.endpoint = endpoint
     }
 
-    // ------------ Prueba de plantilla para funciones de llamada a la api ------------
-    // async _get(path) {
-    //     const url = `${this.endpoint}${path}`;
-        
-    //     try {
-    //         Swal.fire({
-    //             title: "Cargando",
-    //             text: "Obteniendo datos del servidor...",
-    //             icon: "info"
-    //         });
-
-    //         const response = await fetch(url);
-
-    //         Swal.close(); 
-            
-    //         if (!response.ok) {
-    //             throw new Error(`Error HTTP: ${response.status}. El servidor recoge este error.`);
-    //         }
-
-    //         return response.json();
-
-    //     } catch (error) {
-    //         Swal.fire({
-    //             title: "Error de Conexión",
-    //             text: `Fallo al obtener datos de ${path}. ¿Está el backend (npm start) activo?`,
-    //             icon: "error"
-    //         });
-    //         console.error('Error en la API para:', path, error);
-    //         // Devuelvo null para que la función que llama (getAllCategories) sepa que falló
-    //         return null; 
-    //     }
-    // }
-
     async getAllCategories() {
         const path = '/categories'
         const url = `${this.endpoint}${path}`
 
         try {
-            Swal.fire({
-                    title: "Cargando",
-                    text: "Obteniendo datos del servidor...",
-                    icon: "info"
-            })
-
             const response = await fetch(url)
              
             if(!response.ok) {
                 throw new Error (`Error HTTP: ${response.status}, el servidor no responde.`)
             }
             
-            Swal.close();
             return response.json();
-
         }
 
         catch (error){
-            Swal.fire({
-                title: "Error de Conexión",
-                text: `Fallo al obtener datos de ${path}. ¿Está el backend (npm start) activo?`,
-                icon: "error"
+            console.error('Error en la API para:', path, error);
+            return null;
+        }
+    }
+
+    async postCategorie(name, color) {
+        const path = '/categories'
+        const url = `${this.endpoint}${path}`
+
+        const categoryData = {
+            name: name,
+            backgroundColor: color
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(categoryData)
             });
+
+            if(!response.ok) {
+                throw new Error (`Error HTTP: ${response.status}, el servidor no responde.`)
+            }
+            
+            console.log(response);
+            return response.json();
+        }
+
+        catch (error){
+            console.error('Error en la API para:', path, error);
+            return null;
+        }
+    }
+
+    async deleteCategory(id) {
+        const path = '/categories'
+        const url = `${this.endpoint}${path}${id}`
+
+        try {
+            const response = await fetch(url)
+             
+            if(!response.ok) {
+                throw new Error (`Error HTTP: ${response.status}, el servidor no responde.`)
+            }
+            
+            return response.json();
+        }
+
+        catch (error){
             console.error('Error en la API para:', path, error);
             return null;
         }
@@ -78,29 +84,16 @@ class Api {
         const url = `${this.endpoint}${path}`
 
         try {
-            Swal.fire({
-                title: "Cargando",
-                    text: "Obteniendo datos del servidor...",
-                    icon: "info"
-            })
-
             const response = await fetch(url);
 
             if(!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}, el servidor no responde.`)
             }
 
-            Swal.close();
-
             return response.json();
         }
         
         catch(error) {
-            Swal.fire({
-                title: "Error de Conexión",
-                text: `Fallo al obtener datos de ${path}. ¿Está el backend (npm start) activo?`,
-                icon: "error"
-            })
             console.log('Error en la api para: ', path, error);
             return null;
         }
