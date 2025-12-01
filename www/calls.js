@@ -54,7 +54,7 @@ const renderCategories = (categories) => {
         // Evento escuchador que uso para que cuando se haga click en una categoría, que salgan en la web los sites de la misma y que se asigne como categoría activa para ponerle la clase que corresponda programada en extraFunctions.js (linea 114)
         li.addEventListener('click', () => {
             callSitesByCat(categoryId);
-            setActiveCategorie(categoryId)
+            setActiveCategory(categoryId)
         })
         
         // Adición de la categoría a la lista
@@ -174,7 +174,7 @@ async function createCategory() {
         
         // Carga de los sitios de la nueva categoría y ponerle el borde activo.
         await callSitesByCat(finalCategoryId);
-        setActiveCategorie(finalCategoryId);
+        setActiveCategory(finalCategoryId);
     }
 }
 
@@ -210,9 +210,33 @@ function initializeNewCategoryColorPicker() {
     }
 }
 
+let currentActiveCategoryId = null;
+// Funcion para cuando se presione el botón de eliminar categoría, que se elimine
+async function deleteCategoryButton() {
+    // Creación de variable succes al metodo de la api deleteCategory y se le pasa el id de la varibale currentActiveCategoryId que es la categpría activa en ese momento
+    const succes = await api.deleteCategory(currentActiveCategoryId);
+
+    if (succes) {
+        const newFirstCategoryId = await callCategories();
+        if (newFirstCategoryId) {
+            await callSitesByCat(newFirstCategoryId);
+            setActiveCategory(newFirstCategoryId)
+            currentActiveCategoryId = newFirstCategoryId;
+        }
+    } else {
+            // Si no quedan categorías (la lista está vacía)
+            // Opcional: Limpiar el panel de sitios, si callSitesByCat() no lo hace automáticamente
+            document.getElementById('sites-by-cat').innerHTML = '';
+            document.getElementById('nameCategory').textContent = 'No hay categorías';
+            document.getElementById('sitesCount').textContent = '0 sitios guardados';
+            currentActiveCategoryId = null;
+    }
+}
+
 async function callSitesByCat(categoryId) {
     console.log('Iniciando carga de categorías');
-    
+    // Le paso la variable global currentActiveCategoryId para que sea accesible todo el archivo a la categoria activa en todo momento (la implemento para el deleteCategories más que nada)
+    currentActiveCategoryId = categoryId;
     const categoryData = await api.getAllSitesByCat(categoryId);
 
     if (categoryData) {
@@ -247,6 +271,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     // Que por defecto salgan los sites de la primera categoría y que se ponga esta primera como activa
     if (firstCategoryId) {
         await callSitesByCat(firstCategoryId);
-        setActiveCategorie(firstCategoryId);
+        setActiveCategory(firstCategoryId);
+    }
+
+    const btnDelete = document.getElementById('btnDeleteCategory');
+    if (btnDelete) {
+        btnDelete.addEventListener('click', deleteCategoryButton);
     }
 });
