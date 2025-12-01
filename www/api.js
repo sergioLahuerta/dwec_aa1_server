@@ -57,16 +57,22 @@ class Api {
 
     async deleteCategory(id) {
         const path = '/categories'
-        const url = `${this.endpoint}${path}${id}`
+        const url = `${this.endpoint}${path}/${id}`
 
         try {
-            const response = await fetch(url)
+            const response = await fetch(url, {
+                method: 'DELETE'
+            })
              
             if(!response.ok) {
                 throw new Error (`Error HTTP: ${response.status}, el servidor no responde.`)
             }
             
-            return response.json();
+            if (response.status === 204) {
+                return {}; // Devuelvo un objeto vacío para indicar éxito sin contenido
+            }
+
+            return true;
         }
 
         catch (error){
@@ -74,10 +80,6 @@ class Api {
             return null;
         }
     }
-
-    // async getCategorieById(categorie) {
-    //     return this._get('/')
-    // }
 
     async getAllSitesByCat(categoryId) {
         const path = `/categories/${categoryId}`
@@ -99,7 +101,7 @@ class Api {
         }
     }
 
-    // getSites(category) {
-
-    // }
+    async createSite(categoryId) {
+        
+    }
 }
