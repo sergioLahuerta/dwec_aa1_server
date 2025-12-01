@@ -98,7 +98,7 @@ function changeColorCategories() {
 
                     if (targetLi.classList.contains('category-active') || targetLi.classList.contains('category-active-whiteBack')) {
                         // Uso la función de setActiveCategorie para que detecte que cuando se cambia el color del fondo se ponga el borde del color correspondiente al elegido.
-                        setActiveCategorie(targetCategoryId); 
+                        setActiveCategory(targetCategoryId); 
                     }
                 }
             }
