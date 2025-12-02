@@ -37,7 +37,7 @@ const renderCategories = (categories) => {
             
             <div>
                 <button class="btn btn-sm text-white p-1" data-bs-toggle="modal" data-bs-target="#iconPickerModal" data-target-icon="icon-${category.id}">
-                   <i class="bi bi-person-fill fs-5" style="color: ${textColor}"></i> 
+                   <i class="bi bi-pencil-fill fs-5" style="color: ${textColor}"></i>
                 </button>
                 
                 <button class="btn btn-sm text-white p-1" data-bs-toggle="modal" data-bs-target="#colorPickerModal" data-target-id="${categoryId}">
@@ -64,7 +64,7 @@ const renderCategories = (categories) => {
 
 const renderSitesByCat = (sites) => {
     const sitesListByCat = document.getElementById('sites-by-cat');
-    sitesListByCat.innerHTML = ''; // Limpio el content del elemento (en este caso el div con ese id) por si acaso
+    sitesListByCat.innerHTML = ''; // Limpio el content del elemento (en este caso el div con ese id)
 
     sites.sites.forEach(site => {
         const siteId = `site-${site.id}`;
