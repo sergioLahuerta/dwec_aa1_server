@@ -93,7 +93,7 @@ const renderSitesByCat = (sites) => {
 
               <div class="d-flex justify-content-between align-items-center">
                 <div>
-                  <span class="fw-bold text-white me-2">Contraseña:</span> <span class="text-white">${site.password}</span>
+                  <span class="fw-bold text-white me-2">Contraseña:</span> <span class="text-white">${maskPassword(site.password)}</span>
                 </div>
                 <div>
                   <button class="btn btn-sm btn-outline-light border-secondary me-2"><i
@@ -277,7 +277,6 @@ async function openAddSiteModal() {
     const modalInstance = new bootstrap.Modal(addSiteModalElement);
     modalInstance.show();
 }
-
 
 async function createSite() {
     // Recojo los valores del form
