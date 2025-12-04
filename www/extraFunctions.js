@@ -2,6 +2,16 @@
 // La clave para guardar los colores en localStorage
 const STORAGE_KEY = 'categoryColors';
 
+// Contraseña:
+// Ocultar contraseña
+function maskPassword(password) {
+    if (typeof password === 'string' && password.length > 0) {
+        return '•'.repeat(password.length);
+    }
+    return 'N/A';
+}
+
+// Cambiar el color de las categorías
 function changeColorCategories() {
     const styleCard = document.createElement('style');
     styleCard.innerHTML = `
@@ -111,6 +121,7 @@ function changeColorCategories() {
     }
 }
 
+// Asignar qué catego´ria es la que está activa
 function setActiveCategory(activeCategoryId) {
     const allCategories = document.querySelectorAll('#category-list li');
     allCategories.forEach(li => li.classList.remove('category-active', 'category-active-whiteBack'));
