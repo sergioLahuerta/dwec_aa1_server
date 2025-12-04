@@ -135,6 +135,8 @@ class Api {
         }
     }
 
+    updatePasswordSite 
+
     async deleteSite(id) {
         const path = '/sites'
         const url = `${this.endpoint}${path}/${id}`
