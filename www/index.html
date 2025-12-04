@@ -277,5 +277,33 @@
         </div>
     </div>
   </div>
+
+  <!-- Modal Actualizar Contraseña -->
+  <div class="modal fade" id="editPasswordModal" tabindex="-1" aria-labelledby="editPasswordModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="editPasswordModalLabel">Actualizar Contraseña</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            
+            <div class="modal-body">
+                <p class="text-muted small">Editando sitio ID: <span id="editingSiteId"></span></p>
+                
+                <div class="mb-3">
+                    <label for="newPasswordInput" class="form-label">Nueva Contraseña</label>
+                    <input type="password" class="form-control bg-secondary text-white border-secondary" id="newPasswordInput" required>
+                </div>
+            </div>
+            
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnSavePassword">Guardar Nueva Contraseña</button>
+            </div>
+            
+        </div>
+    </div>
+</div>
 </body>
 </html>
