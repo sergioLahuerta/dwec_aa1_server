@@ -11,13 +11,13 @@ const renderCategories = (categories) => {
     categories.forEach(category => {
         const categoryId = `${category.id}`;
         const categoryName = category.name;
-        
+
         // Colores e iconos por defecto, luego si se quiere pues se cambian en la interfaz web
-        const initialIconClass = category.icon || 'bi-folder-fill'; 
+        const initialIconClass = category.icon || 'bi-folder-fill';
         const initialColor = category.backgroundColor || '#6c757d';
         // Si el background inicial es blnaco, el color del texto en azul, si no, en blanco
         const textColor = (initialColor === '#f8f9fa') ? '#0d6efd' : '#ffffff';
-        
+
         // Creación de cada li en el que va cada categoría
         const li = document.createElement('li');
         li.id = categoryId;
@@ -56,7 +56,7 @@ const renderCategories = (categories) => {
             callSitesByCat(categoryId);
             setActiveCategory(categoryId)
         })
-        
+
         // Adición de la categoría a la lista
         categoryList.appendChild(li);
     });
@@ -69,7 +69,7 @@ const renderSitesByCat = (sites) => {
     sites.sites.forEach(site => {
         const siteId = `${site.id}`;
         const siteName = site.name;
-        
+
         // Creación de cada div en el que va cada sitio
         const div = document.createElement('div');
         div.id = siteId;
@@ -96,16 +96,17 @@ const renderSitesByCat = (sites) => {
                   <span class="fw-bold text-white me-2">Contraseña:</span> <span class="text-white">${maskPassword(site.password)}</span>
                 </div>
                 <div>
-                  <button class="btn btn-sm btn-outline-light border-secondary me-2"><i
-                      class="bi bi-pencil-square"></i></button>
+                  <button class="btn btn-sm btn-outline-light border-secondary me-2" onclick="openEditPasswordModal('${siteId}')">
+                    <i class="bi bi-pencil-square"></i>
+                  </button>
                   <button class="btn btn-sm btn-outline-light border-secondary" onclick="deleteSiteButton('${siteId}')"><i
                       class="bi bi-x-lg"></i></button>
                 </div>
               </div>
         `;
-        
+
         // Adición de la categoría a la lista
-        sitesListByCat.appendChild(div); 
+        sitesListByCat.appendChild(div);
     });
 };
 
@@ -115,8 +116,8 @@ async function callCategories() {
     console.log('Iniciando carga de categorías');
 
     const categories = await api.getAllCategories();
-    
-    
+
+
     if (categories) {
         if (categories && categories.length === 0) {
             console.log('No hay categorías, crea una para empezar.')
@@ -152,15 +153,15 @@ async function createCategory() {
 
     const newCategory = await api.postCategorie(name, color);
 
-    if(newCategory) {
+    if (newCategory) {
         const newCategoryId = newCategory.id;
         const finalCategoryIdWithPrefix = `${newCategoryId}`;
-        
+
         // Color elegido en localStorage temporalmente
         const STORAGE_KEY = 'categoryColors';
         const savedColorsJSON = localStorage.getItem(STORAGE_KEY) || '{}';
         const savedColors = JSON.parse(savedColorsJSON);
-        
+
         // Guardado del color elegido en localStorage con el ID que devolvió el POST
         savedColors[finalCategoryIdWithPrefix] = color;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(savedColors));
@@ -168,7 +169,7 @@ async function createCategory() {
         currentActiveCategoryId = null; // Lo pongo porque cuando estoy creando una nueva categoría el color que elijo al crearla se pone también en la categoría activa que es una de las que ya hay creadas. 
 
         const modal = bootstrap.Modal.getInstance(addCategoryModalElement);
-        if(modal) {
+        if (modal) {
             modal.hide();
         }
 
@@ -182,7 +183,7 @@ async function createCategory() {
         await callCategories();
 
         const finalCategoryId = newCategory.id;
-        
+
         // Carga de los sitios de la nueva categoría y ponerle el borde activo.
         await callSitesByCat(finalCategoryId);
         setActiveCategory(finalCategoryId);
@@ -191,22 +192,22 @@ async function createCategory() {
 
 function initializeNewCategoryColorPicker() {
     const newCatSwatches = document.querySelectorAll('.new-cat-swatch');
-    
+
     newCatSwatches.forEach(swatch => {
         swatch.addEventListener('click', (event) => {
             const clickedElement = event.currentTarget;
             const newColor = clickedElement.getAttribute('data-color');
-            
+
             // Limpiar el borde 'activo' de todos los swatches
             newCatSwatches.forEach(s => {
                 s.style.border = '2px solid transparent';
             });
 
             // Aplicar el borde al swatch seleccionado
-            clickedElement.style.border = '2px solid white'; 
-            
+            clickedElement.style.border = '2px solid white';
+
             // Guardar el color en la variable global para usarlo en el POST
-            selectedNewCategoryColor = newColor; 
+            selectedNewCategoryColor = newColor;
 
             console.log("Color para nueva categoría seleccionado:", selectedNewCategoryColor);
         });
@@ -235,12 +236,12 @@ async function deleteCategoryButton() {
             currentActiveCategoryId = newFirstCategoryId;
         }
     } else {
-            // Si no quedan categorías (la lista está vacía)
-            // Opcional: Limpiar el panel de sitios, si callSitesByCat() no lo hace automáticamente
-            document.getElementById('sites-by-cat').innerHTML = '';
-            document.getElementById('nameCategory').textContent = 'No hay categorías';
-            document.getElementById('sitesCount').textContent = '0 sitios guardados';
-            currentActiveCategoryId = null;
+        // Si no quedan categorías (la lista está vacía)
+        // Opcional: Limpiar el panel de sitios, si callSitesByCat() no lo hace automáticamente
+        document.getElementById('sites-by-cat').innerHTML = '';
+        document.getElementById('nameCategory').textContent = 'No hay categorías';
+        document.getElementById('sitesCount').textContent = '0 sitios guardados';
+        currentActiveCategoryId = null;
     }
 }
 
@@ -262,7 +263,7 @@ async function callSitesByCat(categoryId) {
         if (countElement) {
             countElement.textContent = `${sitesCount} sitios guardados`;
         }
-        
+
         console.log('Sitios web cargados con éxito:', categoryData);
         // Llamada a la función de renderizado para dibujar las tarjetas de sitios
         renderSitesByCat(categoryData);
@@ -310,9 +311,46 @@ async function createSite() {
         const modalInstance = bootstrap.Modal.getInstance(addSiteModalElement);
         modalInstance.hide();
         document.getElementById('siteForm').reset(); // Limpia el formulario
-        
-        await callSitesByCat(categoryId);   
+
+        await callSitesByCat(categoryId);
     }
+}
+
+let siteIdToUpdate = null; // Guardo el ID del sitio que se está editando
+function openEditPasswordModal(siteId) {
+    siteIdToUpdate = siteId;
+
+    const modalElement = document.getElementById('editPasswordModal');
+
+    if (modalElement) {
+        const modalInstance = new bootstrap.Modal(modalElement);
+        modalInstance.show();
+    } else {
+        console.error("Modal #editPasswordModal no encontrado.");
+    }
+}
+
+async function saveNewPassword() {
+    const newPassword = document.getElementById('newPasswordInput').value.trim();
+    const targetId = siteIdToUpdate;
+
+    if (!targetId || !newPassword) {
+        alert('El Id del site y la contraseña son obligatorios');
+        return null;
+    }
+
+    const updatedSite = await api.putPasswordSite(targetId, newPassword);
+
+    if (updatedSite) {
+        const modalElement = document.getElementById('editPasswordModal');
+        const modalInstance = bootstrap.Modal.getInstance(modalElement);
+        modalInstance.hide();
+
+        await callSitesByCat(currentActiveCategoryId);
+
+        alert("Contraseña actualizada con éxito.");
+    }
+    siteIdToUpdate = null;
 }
 
 async function deleteSiteButton(siteId) {
@@ -325,8 +363,8 @@ async function deleteSiteButton(siteId) {
     const isConfirmed = confirm(`¿Estás seguro de eliminar el sitio con ID ${siteId} de la categoría activa? ¡Esta acción es irreversible!`);
 
     if (isConfirmed) {
-        const categoryIdToReload = currentActiveCategoryId; 
-        
+        const categoryIdToReload = currentActiveCategoryId;
+
         console.log(`Sitio eliminando ${siteId}...`);
 
         const success = await api.deleteSite(siteId);
@@ -335,7 +373,7 @@ async function deleteSiteButton(siteId) {
             alert("Eliminado!, el sitio ha sido eliminado correctamentre.");
 
             await callSitesByCat(categoryIdToReload);
-            
+
             return true;
         } else {
             alert("Error de Eliminación: No se pudo eliminar el sitio web, verifica el servidor.");
@@ -354,7 +392,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnSave) {
         btnSave.addEventListener('click', createCategory)
     }
-    
+
     const firstCategoryId = await callCategories();
     // Que por defecto salgan los sites de la primera categoría y que se ponga esta primera como activa
     if (firstCategoryId) {
@@ -375,5 +413,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnSaveSite = document.getElementById('btnSaveNewSite');
     if (btnSaveSite) {
         btnSaveSite.addEventListener('click', createSite);
+    }
+
+    const btnSavePassword = document.getElementById('btnSavePassword'); // ID del botón de tu modal de edición
+    if (btnSavePassword) {
+        btnSavePassword.addEventListener('click', saveNewPassword);
     }
 });
