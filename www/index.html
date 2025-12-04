@@ -174,7 +174,7 @@
     </main>
   </div>
 
-    <!-- Modal de nueva categoría -->
+    <!-- Modal Crear Nueva Categoría -->
     <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
       <div class="modal-dialog modal-md modal-dialog-centered">
           <div class="modal-content bg-dark text-white border-secondary">
@@ -237,6 +237,44 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Modal Crear Nuevo Sitio -->
+   <div class="modal fade" id="addSiteModal" tabindex="-1" aria-labelledby="addSiteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark text-white border-secondary">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title" id="addSiteModalLabel">Añadir Nuevo Sitio</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="siteForm">
+                    <div class="mb-3">
+                        <label for="siteName" class="form-label">Nombre del Sitio</label>
+                        <input type="text" class="form-control bg-secondary text-white border-secondary" value="" id="siteName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="siteUrl" class="form-label">URL (Opcional)</label>
+                        <input type="url" class="form-control bg-secondary text-white border-secondary" value="" id="siteUrl">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="siteUser" class="form-label">Usuario / Email</label>
+                            <input type="text" class="form-control bg-secondary text-white border-secondary" id="siteUser" value="" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="sitePassword" class="form-label">Contraseña</label>
+                            <input type="password" class="form-control bg-secondary text-white border-secondary" id="sitePassword" value="" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-secondary">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnSaveNewSite">Guardar Sitio</button>
+            </div>
+        </div>
     </div>
   </div>
 </body>
