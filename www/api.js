@@ -101,7 +101,57 @@ class Api {
         }
     }
 
-    async createSite(categoryId) {
-        
+    async postSite(categoryId, siteName, siteUrl, user, password) {
+        const path = `/categories/${categoryId}`
+        const apiUrl = `${this.endpoint}${path}`
+
+        const siteData = {
+            name: siteName,
+            url: siteUrl,
+            user: user,
+            password: password,
+        };
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(siteData)
+            });
+
+            if(!response.ok) {
+                throw new Error (`Error HTTP: ${response.status}, el servidor no responde.`)
+            }
+            
+            console.log(response);
+            return response.json();
+        }
+
+        catch (error){
+            console.error('Error en la API para:', path, error);
+            return null;
+        }
+    }
+
+    async deleteSite(id) {
+        const path = '/sites'
+        const url = `${this.endpoint}${path}/${id}`
+
+        try {
+            const response = await fetch(url, {
+                method: 'DELETE',
+            });
+
+            if (!response.ok) {
+                throw new Error(`ERROR HTTP: ${response.status}, el servidor no responde`)
+            }
+
+            return true;
+
+        } catch (error) {
+            console.log('Error en la Api para: ', path, error);
+        }
     }
 }
