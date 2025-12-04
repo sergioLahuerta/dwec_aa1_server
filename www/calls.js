@@ -67,7 +67,7 @@ const renderSitesByCat = (sites) => {
     sitesListByCat.innerHTML = ''; // Limpio el content del elemento (en este caso el div con ese id)
 
     sites.sites.forEach(site => {
-        const siteId = `site-${site.id}`;
+        const siteId = `${site.id}`;
         const siteName = site.name;
         
         // Creación de cada div en el que va cada sitio
@@ -98,7 +98,7 @@ const renderSitesByCat = (sites) => {
                 <div>
                   <button class="btn btn-sm btn-outline-light border-secondary me-2"><i
                       class="bi bi-pencil-square"></i></button>
-                  <button class="btn btn-sm btn-outline-light border-secondary me-2"><i
+                  <button class="btn btn-sm btn-outline-light border-secondary" onclick="deleteSiteButton('${siteId}')"><i
                       class="bi bi-x-lg"></i></button>
                 </div>
               </div>
@@ -116,18 +116,24 @@ async function callCategories() {
 
     const categories = await api.getAllCategories();
     
-    if (categories && categories.length > 0) {
-        console.log('Categorías cargadas con éxito:', categories);
-        renderCategories(categories);
-        // Ejecución de la carga de colores guardados al finalizar la configuración.
-        colorUI.loadColors();
-        const firstCategorie = categories[0].id;
+    
+    if (categories) {
+        if (categories && categories.length === 0) {
+            console.log('No hay categorías, crea una para empezar.')
+        } else {
+            console.log('Categorías cargadas con éxito:', categories);
+            renderCategories(categories);
+            // Ejecución de la carga de colores guardados al finalizar la configuración.
+            colorUI.loadColors();
+            const firstCategorie = categories[0].id;
 
-        return firstCategorie;
+            return firstCategorie;
+        }
     } else {
-        console.log('La carga de categorías falló (el error fue mostrado por SweetAlert).');
+        console.log('La carga de categorías falló.');
     }
 }
+
 
 let selectedNewCategoryColor = '#6c757d';
 const addCategoryModalElement = document.getElementById('addCategoryModal');
@@ -137,22 +143,29 @@ async function createCategory() {
     const name = categoryNameInput.value.trim();
     const color = selectedNewCategoryColor;
 
+    if (!name) {
+        alert('Ponle un nombre a la categoría')
+        return null;
+    }
+
     console.log("Creando categoría con color:", color);
 
     const newCategory = await api.postCategorie(name, color);
 
     if(newCategory) {
         const newCategoryId = newCategory.id;
-        const finalCategoryIdWithPrefix = `${newCategoryId}`; // Usas el ID sin prefijo en li.id
+        const finalCategoryIdWithPrefix = `${newCategoryId}`;
         
         // Color elegido en localStorage temporalmente
-        const STORAGE_KEY = 'categoryColors'; // Asegúrate de que esta variable exista globalmente
+        const STORAGE_KEY = 'categoryColors';
         const savedColorsJSON = localStorage.getItem(STORAGE_KEY) || '{}';
         const savedColors = JSON.parse(savedColorsJSON);
         
         // Guardado del color elegido en localStorage con el ID que devolvió el POST
         savedColors[finalCategoryIdWithPrefix] = color;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(savedColors));
+
+        currentActiveCategoryId = null; // Lo pongo porque cuando estoy creando una nueva categoría el color que elijo al crearla se pone también en la categoría activa que es una de las que ya hay creadas. 
 
         const modal = bootstrap.Modal.getInstance(addCategoryModalElement);
         if(modal) {
@@ -165,8 +178,6 @@ async function createCategory() {
         });
 
         selectedNewCategoryColor = '#6c757d';
-
-        categoryNameInput.value = '';
 
         await callCategories();
 
@@ -260,6 +271,84 @@ async function callSitesByCat(categoryId) {
     }
 }
 
+const addSiteModalElement = document.getElementById('addSiteModal');
+async function openAddSiteModal() {
+    // Apertura del modal del formulario
+    const modalInstance = new bootstrap.Modal(addSiteModalElement);
+    modalInstance.show();
+}
+
+
+async function createSite() {
+    // Recojo los valores del form
+    const name = document.getElementById('siteName').value.trim();
+    const url = document.getElementById('siteUrl').value.trim();
+    const user = document.getElementById('siteUser').value.trim();
+    const password = document.getElementById('sitePassword').value.trim();
+    const categoryId = currentActiveCategoryId;
+
+    // Validación minima
+    if (!name || !url || !user || !password) {
+        alert(`No se precisan los datos necesarios para crear el sitio ->
+            Nombre: ${name}
+            Url: ${url}
+            Usuario: ${user}
+            Contraseña: ${password}`)
+        return;
+    }
+
+    // Llamada a la API
+    const newSite = await api.postSite(
+        categoryId,
+        name,
+        url,
+        user,
+        password,
+    );
+
+    if (newSite) {
+        // Cierre del modal
+        const modalInstance = bootstrap.Modal.getInstance(addSiteModalElement);
+        modalInstance.hide();
+        document.getElementById('siteForm').reset(); // Limpia el formulario
+        
+        await callSitesByCat(categoryId);   
+    }
+}
+
+async function deleteSiteButton(siteId) {
+    if (!siteId) {
+        console.error('Id de sitio no encontrado.');
+        return null;
+    }
+
+    // Ventana para confirmar la eliminación
+    const isConfirmed = confirm(`¿Estás seguro de eliminar el sitio con ID ${siteId} de la categoría activa? ¡Esta acción es irreversible!`);
+
+    if (isConfirmed) {
+        const categoryIdToReload = currentActiveCategoryId; 
+        
+        console.log(`Sitio eliminando ${siteId}...`);
+
+        const success = await api.deleteSite(siteId);
+
+        if (success) {
+            alert("Eliminado!, el sitio ha sido eliminado correctamentre.");
+
+            await callSitesByCat(categoryIdToReload);
+            
+            return true;
+        } else {
+            alert("Error de Eliminación: No se pudo eliminar el sitio web, verifica el servidor.");
+            return false;
+        }
+    }
+    return false; // Si el usuario cancela la eliminación
+}
+
+
+// LLamadas a las funciones 
+
 document.addEventListener('DOMContentLoaded', async () => {
     initializeNewCategoryColorPicker()
     const btnSave = document.getElementById('btnSaveNewCategory');
@@ -277,5 +366,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     const btnDelete = document.getElementById('btnDeleteCategory');
     if (btnDelete) {
         btnDelete.addEventListener('click', deleteCategoryButton);
+    }
+
+    const btnAddSite = document.querySelector('.card-header .bg-primary');
+    if (btnAddSite) {
+        btnAddSite.addEventListener('click', openAddSiteModal);
+    }
+
+    const btnSaveSite = document.getElementById('btnSaveNewSite');
+    if (btnSaveSite) {
+        btnSaveSite.addEventListener('click', createSite);
     }
 });
