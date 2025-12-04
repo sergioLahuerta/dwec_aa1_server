@@ -135,7 +135,35 @@ class Api {
         }
     }
 
-    updatePasswordSite 
+    async putPasswordSite(id, password) {
+        const path = "/sites"
+        const url = `${this.endpoint}${path}/${id}`
+
+        const updateSiteData = {
+            password: password
+        }
+
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(updateSiteData)
+            })
+
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}, error en el servidor.`)
+            }
+
+            console.log(response);
+            return response.json();
+            
+        } catch (error) {
+            console.error('Error en la Api para: ', path, error)
+            return null;
+        }
+    } 
 
     async deleteSite(id) {
         const path = '/sites'
