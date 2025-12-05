@@ -258,3 +258,34 @@ function openEditPasswordModal(siteId) {
         console.error("Modal #editPasswordModal no encontrado.");
     }
 }
+
+let targetIconElementId = null; // ID del <i> que vamos a cambiar (ej: 'icon-42')
+const iconPickerModalElement = document.getElementById('iconPickerModal');
+if (iconPickerModalElement) {
+    // Listener para guardar el ID del <i> que se va a editar
+    iconPickerModalElement.addEventListener('show.bs.modal', (event) => {
+        const button = event.relatedTarget; 
+        targetIconElementId = button.getAttribute('data-target-icon');
+    });
+
+    // Listener para cuando se hace clic en un ícono del modal
+    const iconSwatches = document.querySelectorAll('#iconPickerModal .icon-swatch');
+    iconSwatches.forEach(swatch => {
+        swatch.addEventListener('click', () => {
+            const newIconClass = swatch.getAttribute('data-icon');
+            const targetIconElement = document.getElementById(targetIconElementId);
+            
+            if (targetIconElement) {
+                // Limpio todas las clases bi-* existentes
+                targetIconElement.className = targetIconElement.className.replace(/\bbi-[\w-]+\b/g, '');
+                
+                // Añado la nueva clase de ícono
+                targetIconElement.classList.add(newIconClass);
+            }
+            
+            const modalInstance = bootstrap.Modal.getInstance(iconPickerModalElement);
+            modalInstance.hide();
+            targetIconElementId = null;
+        });
+    });
+}
