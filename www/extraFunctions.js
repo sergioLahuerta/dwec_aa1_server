@@ -11,6 +11,50 @@ function maskPassword(password) {
     return 'N/A';
 }
 
+// Generar contraseña segura
+function generateSecurePassword(length = 8) { 
+    const lower = 'abcdefghijklmnopqrstuvwxyz';
+    const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const numbers = '0123456789';
+    const symbols = '!@#$%^&*()_+~`|}{[]\:;?><,./-=';
+    const allChars = lower + upper + numbers + symbols;
+
+    let password = '';
+    
+    // Requisitos mínimos de la contraseña
+    password += lower.charAt(Math.floor(Math.random() * lower.length));
+    password += upper.charAt(Math.floor(Math.random() * upper.length));
+    password += numbers.charAt(Math.floor(Math.random() * numbers.length));
+    password += symbols.charAt(Math.floor(Math.random() * symbols.length));
+
+    // Rellenar la longitud que falta con randoms
+    for (let i = 4; i < length; i++) {
+        password += allChars.charAt(Math.floor(Math.random() * allChars.length));
+    }
+    
+    // Mezclar los caracteres de la contraseña para que los que requiero arriba no estén siempre al principio de la misma
+    password = password.split('').sort(() => 0.5 - Math.random()).join('');
+    
+    return password.substring(0, length);
+}
+
+
+// Poner la contraseña generada por la función de arriba
+function setGeneratedPassword(inputId = 'sitePassword') {
+    const passwordInput = document.getElementById(inputId);
+    if (passwordInput) {
+        newPassword = generateSecurePassword();
+        passwordInput.value = newPassword;
+        
+        // Cambiar temporalmente de tipo password el input a tipo text para que el usuario la pueda ver
+        passwordInput.type = 'text';
+        
+        setTimeout(() => {
+            passwordInput.type = 'password';
+        }, 3000); 
+    }
+}
+
 // Cambiar el color de las categorías
 function changeColorCategories() {
     const styleCard = document.createElement('style');
@@ -136,5 +180,81 @@ function setActiveCategory(activeCategoryId) {
             // Si el fondo es oscuro, en blanco
             currentActiveLi.classList.add('category-active');
         }
+    }
+}
+
+// Validaciones:
+function validateInput(inputElement) {
+    const value = inputElement.value.trim();
+    const id = inputElement.id;
+    let isValid = true;
+
+    // Mínimo 8 caracteres que es lo que puse en el de generar contraseña segura y porque lo pones tu en el doc del classroom
+    if (id === 'sitePassword') {
+        if (value.length < 8) {
+            isValid = false;
+        }
+    }
+
+    // Campo obligatorio, required
+    if (inputElement.required) {
+        if (value === '') {
+            isValid = false;
+        }
+    }
+
+    // Que estñe en formato url
+    if (id === 'siteUrl' && value !== '') {
+        try {
+            new URL(value);
+        } catch (e) {
+            isValid = false;
+        }
+    }
+    return isValid;
+}
+
+function handleValidationOnBlur(event) {
+    const inputElement = event.target;
+    const isValid = validateInput(inputElement);
+
+    // Limpiar clases previas
+    inputElement.classList.remove('is-invalid', 'is-valid');
+
+    if (isValid) {
+        // Si es válido, aplicar el feedback positivo
+        inputElement.classList.add('is-valid');
+        removeFeedbackMessage(inputElement);
+        
+    } else {
+        // Si es inválido, aplicar el feedback negativo
+        inputElement.classList.add('is-invalid');
+        displayFeedbackMessage(inputElement);
+    }
+}
+
+
+//Modales:
+// Función para hacer funcional el botón de añadir sitio
+const addSiteModalElement = document.getElementById('addSiteModal');
+async function openAddSiteModal() {
+    document.getElementById('siteForm').reset();
+    // Apertura del modal del formulario
+    const modalInstance = bootstrap.Modal.getOrCreateInstance(addSiteModalElement);
+    modalInstance.show();
+}
+
+// Hacer visible el modal para editar la contraseña
+let siteIdToUpdate = null; // Guardo el ID del sitio que se está editando
+function openEditPasswordModal(siteId) {
+    siteIdToUpdate = siteId;
+
+    const modalElement = document.getElementById('editPasswordModal');
+
+    if (modalElement) {
+        const modalInstance = new bootstrap.Modal(modalElement);
+        modalInstance.show();
+    } else {
+        console.error("Modal #editPasswordModal no encontrado.");
     }
 }
