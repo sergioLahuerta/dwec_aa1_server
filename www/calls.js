@@ -31,15 +31,11 @@ const renderCategories = (categories) => {
                 <i id="icon-${category.id}" 
                    class="bi ${initialIconClass} me-2 fs-5"
                    style="color: ${textColor}">
-                </i> 
+                </i>
                 ${categoryName}
             </div>
             
             <div>
-                <button class="btn btn-sm text-white p-1" data-bs-toggle="modal" data-bs-target="#iconPickerModal" data-target-icon="icon-${category.id}">
-                   <i class="bi bi-pencil-fill fs-5" style="color: ${textColor}"></i>
-                </button>
-                
                 <button class="btn btn-sm text-white p-1" data-bs-toggle="modal" data-bs-target="#colorPickerModal" data-target-id="${categoryId}">
                     <i class="bi bi-palette-fill fs-5" style="color: ${textColor}"></i>
                 </button>
@@ -79,7 +75,7 @@ const renderSitesByCat = (sites) => {
         // Contenido del div (el codigo comentado en estatico de los sites en el index.html(sin variables claro))
         div.innerHTML = `
             <h5 class="mb-1 d-flex align-items-center">
-                ${siteName}<a href="#" class="ms-2 text-decoration-none small text-primary"><i
+                ${siteName}<a href="${site.url}"target="blank" class="ms-2 text-decoration-none small text-primary"><i
                     class="bi bi-box-arrow-up-right"></i></a>
               </h5>
               <p class="text-primary small mb-3">${site.url}</p>
@@ -96,9 +92,8 @@ const renderSitesByCat = (sites) => {
                   <span class="fw-bold text-white me-2">Contraseña:</span> <span class="text-white">${maskPassword(site.password)}</span>
                 </div>
                 <div>
-                  <button class="btn btn-sm btn-outline-light border-secondary me-2" onclick="openEditPasswordModal('${siteId}')">
-                    <i class="bi bi-pencil-square"></i>
-                  </button>
+                  <button class="btn btn-sm btn-outline-light border-secondary" onclick="openEditPasswordModal('${siteId}')"><i 
+                      class="bi bi-pencil-square"> Editar Contraseña</i></button>
                   <button class="btn btn-sm btn-outline-light border-secondary" onclick="deleteSiteButton('${siteId}')"><i
                       class="bi bi-x-lg"></i></button>
                 </div>
@@ -135,10 +130,10 @@ async function callCategories() {
     }
 }
 
-
+// Variables globales necesarias para luego definir la función que permite crear categorías
 let selectedNewCategoryColor = '#6c757d';
+let currentActiveCategoryId = null;
 const addCategoryModalElement = document.getElementById('addCategoryModal');
-
 async function createCategory() {
     const categoryNameInput = document.getElementById('newCategoryName');
     const name = categoryNameInput.value.trim();
@@ -166,7 +161,7 @@ async function createCategory() {
         savedColors[finalCategoryIdWithPrefix] = color;
         localStorage.setItem(STORAGE_KEY, JSON.stringify(savedColors));
 
-        currentActiveCategoryId = null; // Lo pongo porque cuando estoy creando una nueva categoría el color que elijo al crearla se pone también en la categoría activa que es una de las que ya hay creadas. 
+        currentActiveCategoryId = null; // Lo pongo porque cuando estoy creando una nueva categoría el color que elijo al crearla se pone también en la categoría activa que es una de las que ya hay creadas
 
         const modal = bootstrap.Modal.getInstance(addCategoryModalElement);
         if (modal) {
@@ -222,8 +217,7 @@ function initializeNewCategoryColorPicker() {
     }
 }
 
-let currentActiveCategoryId = null;
-// Funcion para cuando se presione el botón de eliminar categoría, que se elimine
+// Función para cuando se presione el botón de eliminar categoría, que se elimine
 async function deleteCategoryButton() {
     // Creación de variable succes al metodo de la api deleteCategory y se le pasa el id de la varibale currentActiveCategoryId que es la categpría activa en ese momento
     const succes = await api.deleteCategory(currentActiveCategoryId);
@@ -272,6 +266,7 @@ async function callSitesByCat(categoryId) {
     }
 }
 
+// Función para hacer funcional el botón de añadir sitio
 const addSiteModalElement = document.getElementById('addSiteModal');
 async function openAddSiteModal() {
     // Apertura del modal del formulario
@@ -279,6 +274,7 @@ async function openAddSiteModal() {
     modalInstance.show();
 }
 
+// Función para crear sitios
 async function createSite() {
     // Recojo los valores del form
     const name = document.getElementById('siteName').value.trim();
@@ -316,6 +312,7 @@ async function createSite() {
     }
 }
 
+// Hacer visible el modal para editar la contraseña
 let siteIdToUpdate = null; // Guardo el ID del sitio que se está editando
 function openEditPasswordModal(siteId) {
     siteIdToUpdate = siteId;
@@ -353,6 +350,7 @@ async function saveNewPassword() {
     siteIdToUpdate = null;
 }
 
+// Función para eliminar el sitio a través de su botón correspondiente
 async function deleteSiteButton(siteId) {
     if (!siteId) {
         console.error('Id de sitio no encontrado.');
@@ -380,12 +378,11 @@ async function deleteSiteButton(siteId) {
             return false;
         }
     }
-    return false; // Si el usuario cancela la eliminación
+    return false; // False solo si el usuario cancela la eliminación
 }
 
 
-// LLamadas a las funciones 
-
+// LLamadas a las funciones con el dom cargado para que no haya errores en el proceso de llamada
 document.addEventListener('DOMContentLoaded', async () => {
     initializeNewCategoryColorPicker()
     const btnSave = document.getElementById('btnSaveNewCategory');
@@ -415,7 +412,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnSaveSite.addEventListener('click', createSite);
     }
 
-    const btnSavePassword = document.getElementById('btnSavePassword'); // ID del botón de tu modal de edición
+    const btnSavePassword = document.getElementById('btnSavePassword');
     if (btnSavePassword) {
         btnSavePassword.addEventListener('click', saveNewPassword);
     }
