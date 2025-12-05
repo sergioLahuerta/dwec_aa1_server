@@ -9,15 +9,15 @@ class Api {
 
         try {
             const response = await fetch(url)
-             
-            if(!response.ok) {
-                throw new Error (`Error HTTP: ${response.status}, el servidor no responde.`)
+
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}, el servidor no responde.`)
             }
-            
+
             return response.json();
         }
 
-        catch (error){
+        catch (error) {
             console.error('Error en la API para:', path, error);
             return null;
         }
@@ -41,15 +41,15 @@ class Api {
                 body: JSON.stringify(categoryData)
             });
 
-            if(!response.ok) {
-                throw new Error (`Error HTTP: ${response.status}, el servidor no responde.`)
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}, el servidor no responde.`)
             }
-            
+
             console.log(response);
             return response.json();
         }
 
-        catch (error){
+        catch (error) {
             console.error('Error en la API para:', path, error);
             return null;
         }
@@ -63,11 +63,11 @@ class Api {
             const response = await fetch(url, {
                 method: 'DELETE'
             })
-             
-            if(!response.ok) {
-                throw new Error (`Error HTTP: ${response.status}, el servidor no responde.`)
+
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}, el servidor no responde.`)
             }
-            
+
             if (response.status === 204) {
                 return {}; // Devuelvo un objeto vacío para indicar éxito sin contenido
             }
@@ -75,7 +75,7 @@ class Api {
             return true;
         }
 
-        catch (error){
+        catch (error) {
             console.error('Error en la API para:', path, error);
             return null;
         }
@@ -88,14 +88,14 @@ class Api {
         try {
             const response = await fetch(url);
 
-            if(!response.ok) {
+            if (!response.ok) {
                 throw new Error(`Error HTTP: ${response.status}, el servidor no responde.`)
             }
 
             return response.json();
         }
-        
-        catch(error) {
+
+        catch (error) {
             console.log('Error en la api para: ', path, error);
             return null;
         }
@@ -121,15 +121,15 @@ class Api {
                 body: JSON.stringify(siteData)
             });
 
-            if(!response.ok) {
-                throw new Error (`Error HTTP: ${response.status}, el servidor no responde.`)
+            if (!response.ok) {
+                throw new Error(`Error HTTP: ${response.status}, el servidor no responde.`)
             }
-            
+
             console.log(response);
             return response.json();
         }
 
-        catch (error){
+        catch (error) {
             console.error('Error en la API para:', path, error);
             return null;
         }
@@ -156,14 +156,24 @@ class Api {
                 throw new Error(`Error HTTP: ${response.status}, error en el servidor.`)
             }
 
+            // Me da un error de SyntaxError cuando la respuesta en el json es response.ok, por eso aquí intento capturar ese error 
+            // -> Uncaught (in promise) SyntaxError: Unexpected token 'O', "OK" is not valid JSON
+            const contentType = response.headers.get("content-type");
+
+            if (response.status === 204 || !contentType || contentType.indexOf("application/json") === -1) {
+                // Si el PUT fue exitoso (200 o 204) pero el cuerpo está vacío o es texto simple ("OK"), devuelvo un objeto de éxito simple para decirle a saveNewPassword en calls.js que la respuesta es correcta y la petición ha sido exitosa
+                console.log(`PUT exitoso para el sitio ${id}, cuerpo de respuesta vacío.`);
+                return { success: true };
+            }
+
             console.log(response);
             return response.json();
-            
+
         } catch (error) {
             console.error('Error en la Api para: ', path, error)
             return null;
         }
-    } 
+    }
 
     async deleteSite(id) {
         const path = '/sites'
