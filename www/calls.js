@@ -196,7 +196,8 @@ async function createCategory() {
 
 function initializeNewCategoryColorPicker() {
     const newCatSwatches = document.querySelectorAll('.new-cat-swatch');
-
+    let currentActiveCategoryId = null;
+    
     newCatSwatches.forEach(swatch => {
         swatch.addEventListener('click', (event) => {
             const clickedElement = event.currentTarget;
