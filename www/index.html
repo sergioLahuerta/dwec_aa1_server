@@ -1,29 +1,316 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
+
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Document</title>
+  <title>Gestor de Contraseñas (Bootstrap Only)</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"
+    defer></script>
+  <script src="api.js" defer></script>
+  <script src="extraFunctions.js" defer></script>
+  <script src="calls.js" defer></script>
 </head>
-<body>
-  <main>
-    <ul></ul>
-  </main>
-  <script>
-    let drawData = (data) => {
-      data.forEach(category => {
-        let parent = document.getElementsByTagName('ul')[0]
-        let child = document.createElement('li')
-        // child.innerText = JSON.stringify(category)
-        child.innerText = category.name
-        parent.appendChild(child)
-      })
-    }
 
-    fetch("http://localhost:3000/categories")
-      .then(res => res.json())
-      .then(data => drawData(data))
-  </script>
+<style>
+  .category-active {
+    box-shadow: 0 0 0 3px #ffffff,
+      0 0 10px rgba(239, 237, 237, 0.5);
+    transition: box-shadow 0.2s ease-in-out;
+    border: 1px solid #ffffff;
+  }
+
+  .category-active-whiteBack {
+    box-shadow: 0 0 0 3px #0d6efd,
+      0 0 10px rgba(13, 110, 253, 0.5);
+    transition: box-shadow 0.2s ease-in-out;
+    border: 1px solid #0d6efd;
+  }
+</style>
+
+<body class="bg-dark bg-gradient text-white">
+  <div class="d-flex vh-100">
+    <aside class="flex-shrink-0 p-3 border-end border-secondary bg-dark bg-gradient bg-opacity-50"
+      style="width: 280px;">
+      <div class="d-flex align-items-center mb-4 pb-3 border-bottom border-secondary">
+        <i class="bi bi-key-fill fs-2 me-2 text-primary"></i>
+        <div>
+          <h2 class="fs-5 mb-0 text-white">Gestor de Contraseñas</h2>
+          <p class=" small mb-0">Gestiona tus credenciales</p>
+        </div>
+      </div>
+
+      <div class="card bg-dark text-white border-secondary shadow-sm">
+        <div
+          class="card-header d-flex justify-content-between align-items-center bg-dark border-bottom border-secondary p-3">
+          <span class="fw-bold">Categorías</span>
+          <button class="btn btn-primary btn-sm d-flex align-items-center" data-bs-toggle="modal"
+            data-bs-target="#addCategoryModal">
+            <i class="bi bi-plus-lg me-1"></i> Nueva
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="input-group mb-3">
+            <input type="text" class="form-control bg-light border-secondary" placeholder="Buscar categorías..."
+              aria-label="Buscar categorías" style="box-shadow: none;">
+            <button class="btn btn-outline-light border-secondary" type="button"><i class="bi bi-search"></i></button>
+          </div>
+          <ul class="list-unstyled" id="category-list">
+            <!-- CATEGORÍAS -->
+          </ul>
+        </div>
+      </div>
+    </aside>
+
+    <main class="flex-grow-1 p-4">
+
+      <div class="card bg-dark border-secondary text-white shadow-sm">
+        <div
+          class="card-header d-flex justify-content-between align-items-center bg-dark border-bottom border-secondary">
+          <div>
+            <span id="nameCategory" class="fs-5 fw-bold"></span>
+            <p id="sitesCount" class="text-muted small mb-0">Cargando...</p>
+          </div>
+          <div class="d-inline-flex gap-2">
+            <button class="btn btn-dark d-flex align-items-center bg-primary">
+              <i class="bi bi-plus-lg me-1"></i> Añadir Sitio
+            </button>
+            <button id="btnDeleteCategory" class="btn btn-dark d-flex align-items-center bg-danger">
+              <i class="bi bi-dash-lg me-1"></i> Eliminar Categoría
+            </button>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="input-group mb-4">
+            <input type="text" class="form-control bg-light-subtle border-secondary" placeholder="Buscar sitios..."
+              aria-label="Buscar sitios" style="box-shadow: none;">
+            <button class="btn btn-outline-light border-secondary" type="button"><i class="bi bi-search"></i></button>
+          </div>
+
+          <div id="sites-by-cat" class="d-flex gap-4 flex-wrap">
+            <!-- SITIOS -->
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Crear Nueva Categoría -->
+  <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border-secondary">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" id="addCategoryModalLabel">Crear Nueva Categoría</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="mb-4">
+            <label for="newCategoryName" class="form-label">Nombre de la Categoría</label>
+            <input type="text" class="form-control bg-secondary text-white border-secondary" id="newCategoryName"
+              placeholder="Ej: Bancos, Trabajo, Email">
+          </div>
+          <p class="mb-2">Elige un color por defecto:</p>
+          <div class="d-flex flex-wrap justify-content-center border border-secondary p-3 rounded"
+            style="width: 300px;">
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#0d6efd"
+              style="background-color: #0d6efd;"></button>
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#15e588"
+              style="background-color: #15e588;"></button>
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#17d2ef"
+              style="background-color: #17d2ef;"></button>
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#191818"
+              style="background-color: #191818;"></button>
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#28a745"
+              style="background-color: #28a745;"></button>
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#6c757d"
+              style="background-color: #6c757d;"></button>
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#6f42c1"
+              style="background-color: #6f42c1;"></button>
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#dc3545"
+              style="background-color: #dc3545;"></button>
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#e636c5"
+              style="background-color: #e636c5;"></button>
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#f8f9fa"
+              style="background-color: #f8f9fa;"></button>
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#fd7e14"
+              style="background-color: #fd7e14;"></button>
+            <button class="color-swatch new-cat-swatch m-1 p-0 rounded" data-color="#ffc107"
+              style="background-color: #ffc107;"></button>
+          </div>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btnSaveNewCategory">Guardar Categoría</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal selección de color en la categoría -->
+  <div class="modal fade" id="colorPickerModal" tabindex="-1" aria-labelledby="colorPickerModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border-secondary">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" id="colorPickerModalLabel">Elige un color</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex flex-wrap justify-content-center">
+            <button class="color-swatch m-1 p-0 rounded" data-color="#0d6efd"
+              style="background-color: #0d6efd;"></button>
+            <button class="color-swatch m-1 p-0 rounded" data-color="#15e588"
+              style="background-color: #15e588;"></button>
+            <button class="color-swatch m-1 p-0 rounded" data-color="#17d2ef"
+              style="background-color: #17d2ef;"></button>
+            <button class="color-swatch m-1 p-0 rounded" data-color="#191818"
+              style="background-color: #191818;"></button>
+            <button class="color-swatch m-1 p-0 rounded" data-color="#28a745"
+              style="background-color: #28a745;"></button>
+            <button class="color-swatch m-1 p-0 rounded" data-color="#6c757d"
+              style="background-color: #6c757d;"></button>
+            <button class="color-swatch m-1 p-0 rounded" data-color="#6f42c1"
+              style="background-color: #6f42c1;"></button>
+            <button class="color-swatch m-1 p-0 rounded" data-color="#dc3545"
+              style="background-color: #dc3545;"></button>
+            <button class="color-swatch m-1 p-0 rounded" data-color="#e636c5"
+              style="background-color: #e636c5;"></button>
+            <button class="color-swatch m-1 p-0 rounded" data-color="#f8f9fa"
+              style="background-color: #f8f9fa;"></button>
+            <button class="color-swatch m-1 p-0 rounded" data-color="#fd7e14"
+              style="background-color: #fd7e14;"></button>
+            <button class="color-swatch m-1 p-0 rounded" data-color="#ffc107"
+              style="background-color: #ffc107;"></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal selección de icono en la categoría -->
+  <div class="modal fade" id="iconPickerModal" tabindex="-1" aria-labelledby="iconPickerModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border-secondary">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" id="iconPickerModalLabel">Elige un color</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="d-flex flex-wrap justify-content-center">
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="🌐">🌐</button>
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="💳">💳</button>
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="✉️">✉️</button>
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="🛍️">🛍️</button>
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="🎬">🎬</button>
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="☁️">☁️</button>
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="🎮">🎮</button>
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="💼">💼</button>
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="🚑">🚑</button>
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="📚">📚</button>
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="💬">💬</button>
+            <button class="icon-swatch m-1 p-0 rounded" data-icon="🔒">🔒</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div> 
+
+  <!-- Modal Crear Nuevo Sitio -->
+  <div class="modal fade" id="addSiteModal" tabindex="-1" aria-labelledby="addSiteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border-secondary">
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" id="addSiteModalLabel">Añadir Nuevo Sitio</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form id="siteForm">
+            <div class="mb-3">
+              <label for="siteName" class="form-label">Nombre del Sitio</label>
+              <input type="text" class="form-control bg-secondary text-white border-secondary" id="siteName" required>
+              <div class="invalid-feedback">
+                El nombre del sitio es obligatorio.
+              </div>
+            </div>
+            <div class="mb-3">
+              <label for="siteUrl" class="form-label">URL (Opcional)</label>
+              <input type="url" class="form-control bg-secondary text-white border-secondary" id="siteUrl">
+              <div class="invalid-feedback">
+                Por favor, ingresa una URL válida (ej: https://ejemplo.com).
+              </div>
+            </div>
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="siteUser" class="form-label">Usuario / Email</label>
+                <input type="text" class="form-control bg-secondary text-white border-secondary" id="siteUser" required>
+                <div class="invalid-feedback">
+                  El usuario o email es obligatorio.
+                </div>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="sitePassword" class="form-label">Contraseña</label>
+                <div class="input-group d-flex gap-2">
+                  <input type="password" class="form-control bg-secondary text-white border-secondary" id="sitePassword"
+                    required>
+                  <button class="btn btn-primary" type="button" id="btnGeneratePassword">
+                    <i class="bi bi-key-fill"></i>
+                  </button>
+                  <div class="invalid-feedback">
+                  La contraseña debe tener al menos 8 caracteres.
+                </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btnSaveNewSite">Guardar Sitio</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Actualizar Contraseña -->
+  <div class="modal fade" id="editPasswordModal" tabindex="-1" aria-labelledby="editPasswordModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border-secondary">
+
+        <div class="modal-header border-secondary">
+          <h5 class="modal-title" id="editPasswordModalLabel">Cambiar Contraseña</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="text-muted small">Editando sitio ID: <span id="editingSiteId"></span></p>
+
+          <div class="mb-3">
+            <label for="newPasswordInput" class="form-label">Nueva Contraseña</label>
+            <div class="d-flex gap-2">
+              <input type="password" class="form-control bg-secondary text-white border-secondary" id="newPasswordInput"
+                required>
+              <button class="btn btn-primary" type="button" id="btnGeneratePasswordEdit">
+                <i class="bi bi-key-fill"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer border-secondary">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-primary" id="btnSavePassword">Guardar Nueva Contraseña</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
 </body>
+
 </html>
