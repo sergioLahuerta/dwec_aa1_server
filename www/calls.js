@@ -3,6 +3,7 @@
 const API_URL = 'http://localhost:3000';
 const api = new Api(API_URL);
 let colorUI;
+let allCategoriesCache = [];
 
 const renderCategories = (categories) => {
     const categoryList = document.getElementById('category-list');
@@ -28,13 +29,20 @@ const renderCategories = (categories) => {
         // Contenido del li (el codigo comentado en estatico en el index.html(sin variables claro))
         li.innerHTML = `
             <div class="d-flex align-items-center">
-                <i id="icon-${category.id}" 
-                   class="bi ${initialIconClass} me-2 fs-5"
-                   style="color: ${textColor}">
-                </i>
+        
+                <button class="btn btn-sm p-0 me-2" 
+                    style="color: ${textColor};" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#iconPickerModal" 
+                    data-target-icon="icon-${category.id}">
+
+                    <i id="icon-${category.id}" 
+                    class="bi ${initialIconClass} fs-5"></i> 
+                </button>
+
                 ${categoryName}
             </div>
-            
+    
             <div>
                 <button class="btn btn-sm text-white p-1" data-bs-toggle="modal" data-bs-target="#colorPickerModal" data-target-id="${categoryId}">
                     <i class="bi bi-palette-fill fs-5" style="color: ${textColor}"></i>
@@ -114,6 +122,7 @@ async function callCategories() {
 
 
     if (categories) {
+        allCategoriesCache = categories;
         if (categories && categories.length === 0) {
             console.log('No hay categorías, crea una para empezar.')
         } else {
@@ -237,6 +246,33 @@ async function deleteCategoryButton() {
         document.getElementById('nameCategory').textContent = 'No hay categorías';
         document.getElementById('sitesCount').textContent = '0 sitios guardados';
         currentActiveCategoryId = null;
+    }
+}
+
+function filterCategories(searchTerm) {
+    // Convierto el término de búsqueda en minúsculas y lo limpio
+    const term = searchTerm.trim().toLowerCase();
+    
+    // Si el buscador está vacío, mostrar todas las categorías
+    if (term === '') {
+        renderCategories(allCategoriesCache);
+        return;
+    }
+    
+    // Filtrar la lista global = allCategoriesCache
+    const filteredList = allCategoriesCache.filter(category => {
+        // Devuelve true si el nombre de la categoría incluye el término de búsqueda
+        return category.name.toLowerCase().includes(term);
+    });
+    
+    renderCategories(filteredList);
+
+    if (colorUI && colorUI.loadColors) {
+        colorUI.loadColors(); 
+    }
+
+    if (currentActiveCategoryId) {
+        setActiveCategory(currentActiveCategoryId);
     }
 }
 
@@ -422,6 +458,21 @@ document.addEventListener('DOMContentLoaded', async () => {
         btnGenerateEditP.addEventListener('click', () => setGeneratedPassword('newPasswordInput')); 
     }
 
-    
     attachModalValidationListeners();
+
+    const searchInput = document.querySelector('.card-body input[type="text"]');
+    if (searchInput) {
+        // Uso evento 'input' para filtrar en tiempo real
+        searchInput.addEventListener('input', (event) => {
+            // Llamo a la función de filtro con el valor actual del input
+            filterCategories(event.target.value);
+        });
+
+        const searchButton = document.querySelector('.card-body button[type="button"]');
+        if (searchButton) {
+            searchButton.addEventListener('click', () => {
+                filterCategories(searchInput.value);
+            });
+        }
+    }
 });
