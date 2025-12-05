@@ -215,6 +215,7 @@ function initializeNewCategoryColorPicker() {
         selectedNewCategoryColor = '#6c757d';
         defaultSwatch.style.border = '2px solid white';
     }
+    currentActiveCategoryId = null;
 }
 
 // Función para cuando se presione el botón de eliminar categoría, que se elimine
@@ -266,14 +267,6 @@ async function callSitesByCat(categoryId) {
     }
 }
 
-// Función para hacer funcional el botón de añadir sitio
-const addSiteModalElement = document.getElementById('addSiteModal');
-async function openAddSiteModal() {
-    // Apertura del modal del formulario
-    const modalInstance = new bootstrap.Modal(addSiteModalElement);
-    modalInstance.show();
-}
-
 // Función para crear sitios
 async function createSite() {
     // Recojo los valores del form
@@ -309,21 +302,6 @@ async function createSite() {
         document.getElementById('siteForm').reset(); // Limpia el formulario
 
         await callSitesByCat(categoryId);
-    }
-}
-
-// Hacer visible el modal para editar la contraseña
-let siteIdToUpdate = null; // Guardo el ID del sitio que se está editando
-function openEditPasswordModal(siteId) {
-    siteIdToUpdate = siteId;
-
-    const modalElement = document.getElementById('editPasswordModal');
-
-    if (modalElement) {
-        const modalInstance = new bootstrap.Modal(modalElement);
-        modalInstance.show();
-    } else {
-        console.error("Modal #editPasswordModal no encontrado.");
     }
 }
 
@@ -381,6 +359,23 @@ async function deleteSiteButton(siteId) {
     return false; // False solo si el usuario cancela la eliminación
 }
 
+function attachModalValidationListeners() {
+    // Seleccionar todos los inputs dentro del formulario de sitios
+    const form = document.getElementById('siteForm'); 
+    
+    if (form) {
+        const inputs = form.querySelectorAll('input[required], input#sitePassword, input#siteUrl');
+        
+        inputs.forEach(input => {
+            input.addEventListener('blur', handleValidationOnBlur);
+            
+            input.addEventListener('focus', (e) => {
+                e.target.classList.remove('is-invalid', 'is-valid');
+                removeFeedbackMessage(e.target);
+            });
+        });
+    }
+}
 
 // LLamadas a las funciones con el dom cargado para que no haya errores en el proceso de llamada
 document.addEventListener('DOMContentLoaded', async () => {
@@ -416,4 +411,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (btnSavePassword) {
         btnSavePassword.addEventListener('click', saveNewPassword);
     }
+
+    const btnGenerate = document.getElementById('btnGeneratePassword');
+    if (btnGenerate) {
+        btnGenerate.addEventListener('click', () => setGeneratedPassword('sitePassword')); 
+    }
+
+    const btnGenerateEditP = document.getElementById('btnGeneratePasswordEdit');
+    if (btnGenerateEditP) {
+        btnGenerateEditP.addEventListener('click', () => setGeneratedPassword('newPasswordInput')); 
+    }
+
+    
+    attachModalValidationListeners();
 });
